@@ -1,0 +1,42 @@
+# Docker Compose Configuration for Realtime Chat Application
+
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    environment:
+      - VITE_SOCKET_URL=http://localhost:3000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    restart: unless-stopped
+
+  # Database service (for future expansion)
+  database:
+    image: sqlite:latest
+    volumes:
+      - db_data:/var/lib/sqlite
+    restart: unless-stopped
+
+volumes:
+  db_data:
