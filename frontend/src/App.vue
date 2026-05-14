@@ -10,6 +10,13 @@ const chatStore = useChatStore();
 const showChat = computed(() => !!(chatStore.username && chatStore.roomId));
 
 onMounted(() => {
+  // Try to restore saved session
+  const restored = chatStore.restoreFromStorage();
+  if (restored) {
+    // Rejoin room on restore
+    chatStore.joinRoom();
+  }
+  
   chatStore.initSocketListeners();
 });
 </script>

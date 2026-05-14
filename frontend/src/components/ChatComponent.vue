@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useChatStore } from '../stores/chat';
 
 const chatStore = useChatStore();
 const messageInput = ref('');
 const showSidebar = ref(true);
+const isTyping = ref(false);
+const typingTimeout = ref<NodeJS.Timeout | null>(null);
 
 const sendMessage = () => {
   if (messageInput.value.trim()) {
@@ -19,9 +21,35 @@ const handleKeyPress = (event: KeyboardEvent) => {
   }
 };
 
+const handleInput = () => {
+  // Start typing indicator
+  if (!isTyping.value) {
+    isTyping.value = true;
+    chatStore.startTyping();
+  }
+  
+  // Clear previous timeout
+  if (typingTimeout.value) {
+    clearTimeout(typingTimeout.value);
+  }
+  
+  // Set up timeout to stop typing
+  typingTimeout.value = setTimeout(() => {
+    isTyping.value = false;
+    chatStore.stopTyping();
+  }, 1000); // Stop typing after 1 second of inactivity
+};
+
 const toggleSidebar = () => {
   showSidebar.value = !showSidebar.value;
 };
+
+// Cleanup on unmount
+onUnmounted(() => {
+  if (typingTimeout.value) {
+    clearTimeout(typingTimeout.value);
+  }
+});
 </script>
 
 <template>
@@ -71,6 +99,7 @@ const toggleSidebar = () => {
     <div class="chat-input">
       <input
         v-model="messageInput"
+        @input="handleInput"
         @keypress="handleKeyPress"
         placeholder="Type your message..."
         class="input-field"

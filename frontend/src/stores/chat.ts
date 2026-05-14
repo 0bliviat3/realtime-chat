@@ -87,6 +87,33 @@ export const useChatStore = defineStore('chat', {
           this.typingUsers = this.typingUsers.filter(name => name !== data.username);
         }
       });
+    },
+    
+    // Restore state from localStorage
+    restoreFromStorage() {
+      const savedUsername = localStorage.getItem('chat_username');
+      const savedRoomId = localStorage.getItem('chat_roomId');
+      
+      if (savedUsername && savedRoomId) {
+        this.username = savedUsername;
+        this.roomId = savedRoomId;
+        return true;
+      }
+      return false;
+    },
+    
+    // Save state to localStorage
+    saveToStorage() {
+      if (this.username && this.roomId) {
+        localStorage.setItem('chat_username', this.username);
+        localStorage.setItem('chat_roomId', this.roomId);
+      }
+    },
+    
+    // Clear saved state
+    clearStorage() {
+      localStorage.removeItem('chat_username');
+      localStorage.removeItem('chat_roomId');
     }
   }
 });
