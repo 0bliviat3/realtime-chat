@@ -4,6 +4,19 @@ import { useChatStore } from '../stores/chat';
 
 const chatStore = useChatStore();
 const messageInput = ref('');
+
+const sendMessage = () => {
+  if (messageInput.value.trim()) {
+    chatStore.sendMessage(messageInput.value);
+    messageInput.value = '';
+  }
+};
+
+const handleKeyPress = (event: KeyboardEvent) => {
+  if (event.key === 'Enter') {
+    sendMessage();
+  }
+};
 </script>
 
 <template>
