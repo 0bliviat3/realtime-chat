@@ -1,5 +1,5 @@
 import { io, Socket } from 'socket.io-client';
-import { SocketEvents } from './types';
+import type { SocketEvents } from './types';
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000';
 
