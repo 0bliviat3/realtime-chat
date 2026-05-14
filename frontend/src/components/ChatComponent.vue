@@ -34,7 +34,7 @@ const handleKeyPress = (event: KeyboardEvent) => {
       >
         <span class="message-username">{{ message.username }}:</span>
         <span class="message-content">{{ message.message }}</span>
-        <span class="message-time">{{ message.timestamp.toLocaleTimeString() }}</span>
+        <span class="message-time">{{ new Date(message.timestamp).toLocaleTimeString() }}</span>
       </div>
       
       <div v-if="chatStore.typingUsers.length > 0" class="typing-indicator">

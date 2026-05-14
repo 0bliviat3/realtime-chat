@@ -57,7 +57,7 @@ export const useChatStore = defineStore('chat', {
         this.messages.push(message);
       });
       
-      socket.on('system:message', (data: { message: string; timestamp: Date }) => {
+      socket.on('system:message', (data: { message: string; timestamp: string }) => {
         this.messages.push({
           id: Date.now().toString(),
           userId: '',

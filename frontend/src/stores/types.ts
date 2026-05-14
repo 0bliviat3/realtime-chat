@@ -3,7 +3,7 @@ export interface ChatMessage {
   userId: string;
   username: string;
   message: string;
-  timestamp: Date;
+  timestamp: string;
   roomId: string;
 }
 

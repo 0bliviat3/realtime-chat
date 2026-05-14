@@ -5,7 +5,7 @@ export interface ChatMessage {
   userId: string;
   username: string;
   message: string;
-  timestamp: Date;
+  timestamp: string;
   roomId: string;
 }
 
@@ -13,14 +13,14 @@ export interface User {
   id: string;
   username: string;
   roomId: string;
-  joinedAt: Date;
+  joinedAt: string;
 }
 
 export interface Room {
   id: string;
   name: string;
   users: User[];
-  createdAt: Date;
+  createdAt: string;
 }
 
 export interface SocketEvents {
@@ -36,7 +36,7 @@ export interface SocketEvents {
   'user:typing': (data: { username: string; isTyping: boolean }) => void;
   
   // System events
-  'system:message': (data: { message: string; timestamp: Date }) => void;
+  'system:message': (data: { message: string; timestamp: string }) => void;
   
   // Connection events
   'connect': () => void;
