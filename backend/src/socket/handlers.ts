@@ -1,6 +1,6 @@
 import { Server, Socket } from 'socket.io';
 import { ChatMessage, User } from './types';
-import { SOCKET_EVENTS, SYSTEM_MESSAGES } from './events';
+import { SOCKET_EVENTS } from './events';
 
 // In-memory storage for users and rooms (in production, use a database)
 const users: Map<string, User> = new Map();
