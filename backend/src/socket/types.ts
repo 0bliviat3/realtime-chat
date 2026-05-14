@@ -5,7 +5,7 @@ export interface ChatMessage {
   userId: string;
   username: string;
   message: string;
-  timestamp: Date;
+  timestamp: string;
   roomId: string;
 }
 
@@ -13,12 +13,12 @@ export interface User {
   id: string;
   username: string;
   roomId: string;
-  joinedAt: Date;
+  joinedAt: string;
 }
 
 export interface Room {
   id: string;
   name: string;
   users: User[];
-  createdAt: Date;
+  createdAt: string;
 }
