@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useChatStore } from '../stores/chat';
 
 const chatStore = useChatStore();
@@ -43,13 +43,6 @@ const handleInput = () => {
 const toggleSidebar = () => {
   showSidebar.value = !showSidebar.value;
 };
-
-// Cleanup on unmount
-onUnmounted(() => {
-  if (typingTimeout.value) {
-    clearTimeout(typingTimeout.value);
-  }
-});
 </script>
 
 <template>
