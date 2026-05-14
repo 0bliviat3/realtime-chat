@@ -9,6 +9,9 @@ export const SOCKET_EVENTS = {
   ROOM_LEAVE: 'room:leave',
   
   // User events
+  USER_LIST: 'user:list',
+  USER_JOIN: 'user:join',
+  USER_LEAVE: 'user:leave',
   USER_TYPING: 'user:typing',
   USER_DISCONNECT: 'user:disconnect',
   

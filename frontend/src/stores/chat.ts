@@ -68,8 +68,16 @@ export const useChatStore = defineStore('chat', {
         });
       });
       
-      socket.on('room:members', (users: User[]) => {
+      socket.on('user:list', (users: User[]) => {
         this.users = users;
+      });
+      
+      socket.on('user:join', (data: { user: User; timestamp: string }) => {
+        this.users.push(data.user);
+      });
+      
+      socket.on('user:leave', (data: { user: User; timestamp: string }) => {
+        this.users = this.users.filter(user => user.id !== data.user.id);
       });
       
       socket.on('user:typing', (data: { username: string; isTyping: boolean }) => {

@@ -4,6 +4,7 @@ import { useChatStore } from '../stores/chat';
 
 const chatStore = useChatStore();
 const messageInput = ref('');
+const showSidebar = ref(true);
 
 const sendMessage = () => {
   if (messageInput.value.trim()) {
@@ -17,6 +18,10 @@ const handleKeyPress = (event: KeyboardEvent) => {
     sendMessage();
   }
 };
+
+const toggleSidebar = () => {
+  showSidebar.value = !showSidebar.value;
+};
 </script>
 
 <template>
@@ -24,21 +29,42 @@ const handleKeyPress = (event: KeyboardEvent) => {
     <div class="chat-header">
       <h2>Room: {{ chatStore.roomId }}</h2>
       <p>Welcome, {{ chatStore.username }}</p>
+      <button @click="toggleSidebar" class="btn-toggle-sidebar">
+        {{ showSidebar ? 'Hide Users' : 'Show Users' }}
+      </button>
     </div>
     
-    <div class="chat-messages">
-      <div 
-        v-for="message in chatStore.messages" 
-        :key="message.id"
-        class="message"
-      >
-        <span class="message-username">{{ message.username }}:</span>
-        <span class="message-content">{{ message.message }}</span>
-        <span class="message-time">{{ new Date(message.timestamp).toLocaleTimeString() }}</span>
+    <div class="chat-content">
+      <div v-if="showSidebar" class="sidebar">
+        <div class="sidebar-header">
+          <h3>Online Users ({{ chatStore.users.length }})</h3>
+        </div>
+        <div class="user-list">
+          <div 
+            v-for="user in chatStore.users" 
+            :key="user.id"
+            :class="['user-item', { 'current-user': user.username === chatStore.username }]"
+          >
+            <span>{{ user.username }}</span>
+            <span v-if="user.username === chatStore.username" class="me-badge">(me)</span>
+          </div>
+        </div>
       </div>
       
-      <div v-if="chatStore.typingUsers.length > 0" class="typing-indicator">
-        {{ chatStore.typingUsers.join(', ') }} {{ chatStore.typingUsers.length > 1 ? 'are' : 'is' }} typing...
+      <div class="chat-messages">
+        <div 
+          v-for="message in chatStore.messages" 
+          :key="message.id"
+          class="message"
+        >
+          <span class="message-username">{{ message.username }}:</span>
+          <span class="message-content">{{ message.message }}</span>
+          <span class="message-time">{{ new Date(message.timestamp).toLocaleTimeString() }}</span>
+        </div>
+        
+        <div v-if="chatStore.typingUsers.length > 0" class="typing-indicator">
+          {{ chatStore.typingUsers.join(', ') }} {{ chatStore.typingUsers.length > 1 ? 'are' : 'is' }} typing...
+        </div>
       </div>
     </div>
     
@@ -60,6 +86,7 @@ const handleKeyPress = (event: KeyboardEvent) => {
   flex-direction: column;
   height: 100vh;
   background: #f5f5f5;
+  position: relative;
 }
 
 .chat-header {
@@ -67,6 +94,79 @@ const handleKeyPress = (event: KeyboardEvent) => {
   color: white;
   padding: 15px 20px;
   border-bottom: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-toggle-sidebar {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-toggle-sidebar:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.chat-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 250px;
+  background: white;
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 140px);
+}
+
+.sidebar-header {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  background: #f8f9fa;
+}
+
+.sidebar-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.user-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.user-item {
+  padding: 8px 10px;
+  margin-bottom: 5px;
+  border-radius: 4px;
+  background: #f8f9fa;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.user-item.current-user {
+  background: #007bff;
+  color: white;
+}
+
+.me-badge {
+  font-size: 12px;
+  background: #28a745;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 5px;
 }
 
 .chat-messages {
@@ -74,12 +174,17 @@ const handleKeyPress = (event: KeyboardEvent) => {
   overflow-y: auto;
   padding: 20px;
   background: white;
+  display: flex;
+  flex-direction: column;
 }
 
 .message {
   margin-bottom: 15px;
   padding: 8px 0;
   border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .message-username {
@@ -90,6 +195,7 @@ const handleKeyPress = (event: KeyboardEvent) => {
 
 .message-content {
   color: #333;
+  flex: 1;
 }
 
 .message-time {
@@ -131,5 +237,17 @@ const handleKeyPress = (event: KeyboardEvent) => {
 
 .btn-send:hover {
   background-color: #218838;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 0;
+    transition: width 0.3s ease;
+  }
+  
+  .sidebar.open {
+    width: 250px;
+  }
 }
 </style>

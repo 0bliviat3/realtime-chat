@@ -19,7 +19,7 @@ export const setupSocketEvents = (io: Server) => {
         id: socket.id,
         username,
         roomId,
-        joinedAt: new Date()
+        joinedAt: new Date().toISOString()
       };
       
       users.set(socket.id, user);
@@ -36,12 +36,18 @@ export const setupSocketEvents = (io: Server) => {
       // Notify others in the room
       socket.to(roomId).emit(SOCKET_EVENTS.SYSTEM_MESSAGE, {
         message: `[System] ${username} joined`,
-        timestamp: new Date()
+        timestamp: new Date().toISOString()
+      });
+      
+      // Notify others in the room about user join
+      socket.to(roomId).emit(SOCKET_EVENTS.USER_JOIN, {
+        user: user,
+        timestamp: new Date().toISOString()
       });
       
       // Send room members to the user
       const roomUsers = rooms.get(roomId) || [];
-      socket.emit('room:members', roomUsers);
+      socket.emit(SOCKET_EVENTS.USER_LIST, roomUsers);
       
       console.log(`${username} joined room ${roomId}`);
     });
@@ -58,15 +64,19 @@ export const setupSocketEvents = (io: Server) => {
           const userIndex = roomUsers.findIndex(u => u.id === socket.id);
           if (userIndex !== -1) {
             roomUsers.splice(userIndex, 1);
+            
+            // Notify others in the room
+            socket.to(roomId).emit(SOCKET_EVENTS.SYSTEM_MESSAGE, {
+              message: `[System] ${user.username} left`,
+              timestamp: new Date().toISOString()
+            });
+            
+            // Notify others in the room about user leave
+            socket.to(roomId).emit(SOCKET_EVENTS.USER_LEAVE, {
+              user: user,
+              timestamp: new Date().toISOString()
+            });
           }
-          
-          // Notify others in the room
-          socket.to(roomId).emit(SOCKET_EVENTS.SYSTEM_MESSAGE, {
-            message: `[System] ${user.username} left`,
-            timestamp: new Date()
-          });
-          
-          console.log(`${user.username} left room ${roomId}`);
         }
         
         // Remove user from users map
@@ -85,7 +95,7 @@ export const setupSocketEvents = (io: Server) => {
           userId: user.id,
           username: user.username,
           message,
-          timestamp: new Date(),
+          timestamp: new Date().toISOString(),
           roomId
         };
         
@@ -122,7 +132,13 @@ export const setupSocketEvents = (io: Server) => {
             // Notify others in the room
             socket.to(user.roomId).emit(SOCKET_EVENTS.SYSTEM_MESSAGE, {
               message: `[System] ${user.username} left`,
-              timestamp: new Date()
+              timestamp: new Date().toISOString()
+            });
+            
+            // Notify others in the room about user leave
+            socket.to(user.roomId).emit(SOCKET_EVENTS.USER_LEAVE, {
+              user: user,
+              timestamp: new Date().toISOString()
             });
           }
         }

@@ -33,6 +33,9 @@ export interface SocketEvents {
   'room:leave': (data: { roomId: string }) => void;
   
   // User events
+  'user:list': (data: User[]) => void;
+  'user:join': (data: { user: User; timestamp: string }) => void;
+  'user:leave': (data: { user: User; timestamp: string }) => void;
   'user:typing': (data: { username: string; isTyping: boolean }) => void;
   
   // System events
