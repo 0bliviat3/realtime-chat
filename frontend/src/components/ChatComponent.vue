@@ -4,7 +4,6 @@ import { useChatStore } from '../stores/chat';
 
 const chatStore = useChatStore();
 const messageInput = ref('');
-const showSidebar = ref(true);
 const isTyping = ref(false);
 const typingTimeout = ref<NodeJS.Timeout | null>(null);
 
@@ -40,9 +39,22 @@ const handleInput = () => {
   }, 1000); // Stop typing after 1 second of inactivity
 };
 
-const toggleSidebar = () => {
-  showSidebar.value = !showSidebar.value;
+const handleLeaveRoom = () => {
+  // Leave the room
+  chatStore.leaveRoom();
+  // Clear localStorage
+  chatStore.clearStorage();
+  // Reset store
+  chatStore.$reset();
+  // No need to manually navigate, the computed property in App.vue will handle that
 };
+
+// Cleanup on unmount
+onUnmounted(() => {
+  if (typingTimeout.value) {
+    clearTimeout(typingTimeout.value);
+  }
+});
 </script>
 
 <template>
@@ -50,13 +62,11 @@ const toggleSidebar = () => {
     <div class="chat-header">
       <h2>Room: {{ chatStore.roomId }}</h2>
       <p>Welcome, {{ chatStore.username }}</p>
-      <button @click="toggleSidebar" class="btn-toggle-sidebar">
-        {{ showSidebar ? 'Hide Users' : 'Show Users' }}
-      </button>
+      <button @click="handleLeaveRoom" class="btn-leave-room">Leave Room</button>
     </div>
     
     <div class="chat-content">
-      <div v-if="showSidebar" class="sidebar">
+      <div class="sidebar">
         <div class="sidebar-header">
           <h3>Online Users ({{ chatStore.users.length }})</h3>
         </div>

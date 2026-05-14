@@ -16,15 +16,6 @@ const handleJoin = () => {
     chatStore.joinRoom();
   }
 };
-
-const handleLogout = () => {
-  // Leave current room
-  chatStore.leaveRoom();
-  // Clear localStorage
-  chatStore.clearStorage();
-  // Reset store
-  chatStore.$reset();
-};
 </script>
 
 <template>
@@ -47,7 +38,6 @@ const handleLogout = () => {
       />
     </div>
     <button @click="handleJoin" class="btn-primary">Join Room</button>
-    <button @click="handleLogout" class="btn-secondary" style="margin-left: 10px;">Logout</button>
   </div>
 </template>
 
@@ -84,19 +74,5 @@ const handleLogout = () => {
 
 .btn-primary:hover {
   background-color: #0056b3;
-}
-
-.btn-secondary {
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-.btn-secondary:hover {
-  background-color: #c82333;
 }
 </style>
