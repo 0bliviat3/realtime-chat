@@ -1,32 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useChatStore } from '../../stores/chat';
+import { useChatStore } from '../stores/chat';
 
 const chatStore = useChatStore();
 const messageInput = ref('');
-
-const joinRoom = () => {
-  if (chatStore.username && chatStore.roomId) {
-    chatStore.joinRoom();
-  }
-};
-
-const sendMessage = () => {
-  if (messageInput.value.trim()) {
-    chatStore.sendMessage(messageInput.value);
-    messageInput.value = '';
-  }
-};
-
-const handleKeyPress = (e: KeyboardEvent) => {
-  if (e.key === 'Enter') {
-    sendMessage();
-  }
-};
-
-onMounted(() => {
-  chatStore.initSocketListeners();
-});
 </script>
 
 <template>

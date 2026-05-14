@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { socket, SocketEvents } from './index';
+import { socket } from './index';
 import { ChatMessage, User } from './types';
 
 export const useChatStore = defineStore('chat', {

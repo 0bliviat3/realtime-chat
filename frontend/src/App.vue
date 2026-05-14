@@ -1,22 +1,17 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useChatStore } from './stores/chat';
 import LoginComponent from './components/LoginComponent.vue';
 import ChatComponent from './components/ChatComponent.vue';
 
 const chatStore = useChatStore();
-const showChat = ref(false);
+
+// Reactive computed property for showing chat component
+const showChat = computed(() => !!(chatStore.username && chatStore.roomId));
 
 onMounted(() => {
   chatStore.initSocketListeners();
 });
-
-// Check if user is authenticated
-if (chatStore.username && chatStore.roomId) {
-  showChat.value = true;
-} else {
-  showChat.value = false;
-}
 </script>
 
 <template>
