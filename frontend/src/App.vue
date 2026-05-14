@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useChatStore } from '../stores/chat';
+import { useChatStore } from './stores/chat';
 import LoginComponent from './components/LoginComponent.vue';
 import ChatComponent from './components/ChatComponent.vue';
 
