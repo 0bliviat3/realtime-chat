@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useChatStore } from '../../stores/chat';
+import { useChatStore } from '../stores/chat';
 
 const chatStore = useChatStore();
 const username = ref('');
