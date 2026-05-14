@@ -11,6 +11,14 @@ A scalable, real-time chat application built with modern web technologies.
 ✅ System messages (join/leave)  
 ✅ Responsive frontend UI  
 
+## Features Implemented (Step 2)
+
+✅ Multi-room support  
+✅ Session persistence with localStorage  
+✅ Typing indicators with debouncing  
+✅ Cross-tab synchronization  
+✅ Refresh state recovery  
+
 ## Architecture
 
 ### Backend
@@ -122,7 +130,7 @@ frontend/
 ✅ Completed
 
 ### Step 2: Multi-room Support
-⏳ In Progress
+✅ Completed
 
 ### Step 3: Database Integration
 ⏳ Not Started
