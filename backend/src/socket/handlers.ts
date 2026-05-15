@@ -105,6 +105,21 @@ export const setupSocketEvents = (io: Server) => {
       }
     });
 
+    // Handle room history request
+    socket.on(SOCKET_EVENTS.ROOM_HISTORY, async (data: { roomId: string }) => {
+      const { roomId } = data;
+      
+      try {
+        // Get recent messages for the room
+        const messages = await messageService.findRecentByRoom(roomId, 100);
+        
+        // Send history to the requesting user
+        socket.emit(SOCKET_EVENTS.MESSAGE_HISTORY, messages);
+      } catch (error) {
+        console.error('Error retrieving room history:', error);
+      }
+    });
+
     // Handle user typing
     socket.on(SOCKET_EVENTS.USER_TYPING, (data: { isTyping: boolean; roomId: string }) => {
       const { isTyping, roomId } = data;
