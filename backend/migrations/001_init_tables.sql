@@ -1,0 +1,31 @@
+-- Migration: Create users table
+-- Created at: 2023-05-15 10:00:00
+
+CREATE TABLE IF NOT EXISTS users (
+  id VARCHAR(255) PRIMARY KEY,
+  nickname VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Migration: Create rooms table
+-- Created at: 2023-05-15 10:00:00
+
+CREATE TABLE IF NOT EXISTS rooms (
+  id VARCHAR(255) PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Migration: Create messages table
+-- Created at: 2023-05-15 10:00:00
+
+CREATE TABLE IF NOT EXISTS messages (
+  id VARCHAR(255) PRIMARY KEY,
+  room_id VARCHAR(255) NOT NULL,
+  user_id VARCHAR(255) NOT NULL,
+  message TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);

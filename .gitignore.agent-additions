@@ -1,0 +1,15 @@
+# Agent scratchpad - 코드 베이스에 commit하지 않음
+.agent/
+
+# 코더 agent가 만든 baseline 파일
+.agent/baseline.json
+.agent/state.md
+.agent/allowed_paths
+
+# 환경변수 (PAT 등)
+.env
+.env.local
+.env.*.local
+
+# opencode 세션/캐시
+.opencode/cache/

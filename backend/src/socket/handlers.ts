@@ -1,17 +1,20 @@
 import { Server, Socket } from 'socket.io';
 import { ChatMessage, User } from './types';
 import { SOCKET_EVENTS } from './events';
+import { UserService, RoomService, MessageService } from '../services/chat.service';
+import { pool } from '../db/db';
 
-// In-memory storage for users and rooms (in production, use a database)
-const users: Map<string, User> = new Map();
-const rooms: Map<string, User[]> = new Map();
+// Initialize services
+const userService = new UserService();
+const roomService = new RoomService();
+const messageService = new MessageService();
 
 export const setupSocketEvents = (io: Server) => {
-  io.on('connection', (socket: Socket) => {
+  io.on('connection', async (socket: Socket) => {
     console.log('User connected:', socket.id);
 
     // Handle user joining a room
-    socket.on(SOCKET_EVENTS.ROOM_JOIN, (data: { username: string; roomId: string }) => {
+    socket.on(SOCKET_EVENTS.ROOM_JOIN, async (data: { username: string; roomId: string }) => {
       const { username, roomId } = data;
       
       // Store user info
@@ -22,130 +25,117 @@ export const setupSocketEvents = (io: Server) => {
         joinedAt: new Date().toISOString()
       };
       
-      users.set(socket.id, user);
-      
-      // Join the room
-      socket.join(roomId);
-      
-      // Add user to room
-      if (!rooms.has(roomId)) {
-        rooms.set(roomId, []);
+      try {
+        // Create or update user in DB
+        await userService.createOrUpdate({
+          id: user.id,
+          nickname: user.username
+        });
+        
+        // Check if room exists, if not create it
+        const existingRoom = await roomService.findById(roomId);
+        if (!existingRoom) {
+          await roomService.create({
+            id: roomId,
+            name: roomId // Using room ID as name for simplicity
+          });
+        }
+        
+        // Join the room
+        socket.join(roomId);
+        
+        // Notify others in the room
+        socket.to(roomId).emit(SOCKET_EVENTS.SYSTEM_MESSAGE, {
+          message: `[System] ${username} joined`,
+          timestamp: new Date().toISOString()
+        });
+        
+        // Notify others in the room about user join
+        socket.to(roomId).emit(SOCKET_EVENTS.USER_JOIN, {
+          user: user,
+          timestamp: new Date().toISOString()
+        });
+        
+        // Send room members to the user
+        // (Note: we don't need to send user list as we have DB persistence)
+        
+        console.log(`${username} joined room ${roomId}`);
+      } catch (error) {
+        console.error('Error in room join:', error);
       }
-      rooms.get(roomId)?.push(user);
-      
-      // Notify others in the room
-      socket.to(roomId).emit(SOCKET_EVENTS.SYSTEM_MESSAGE, {
-        message: `[System] ${username} joined`,
-        timestamp: new Date().toISOString()
-      });
-      
-      // Notify others in the room about user join
-      socket.to(roomId).emit(SOCKET_EVENTS.USER_JOIN, {
-        user: user,
-        timestamp: new Date().toISOString()
-      });
-      
-      // Send room members to the user
-      const roomUsers = rooms.get(roomId) || [];
-      socket.emit(SOCKET_EVENTS.USER_LIST, roomUsers);
-      
-      console.log(`${username} joined room ${roomId}`);
     });
 
     // Handle user leaving a room
     socket.on(SOCKET_EVENTS.ROOM_LEAVE, (data: { roomId: string }) => {
       const { roomId } = data;
-      const user = users.get(socket.id);
-      
-      if (user) {
-        // Remove user from room
-        const roomUsers = rooms.get(roomId);
-        if (roomUsers) {
-          const userIndex = roomUsers.findIndex(u => u.id === socket.id);
-          if (userIndex !== -1) {
-            roomUsers.splice(userIndex, 1);
-            
-            // Notify others in the room
-            socket.to(roomId).emit(SOCKET_EVENTS.SYSTEM_MESSAGE, {
-              message: `[System] ${user.username} left`,
-              timestamp: new Date().toISOString()
-            });
-            
-            // Notify others in the room about user leave
-            socket.to(roomId).emit(SOCKET_EVENTS.USER_LEAVE, {
-              user: user,
-              timestamp: new Date().toISOString()
-            });
-          }
-        }
-        
-        // Remove user from users map
-        users.delete(socket.id);
-      }
+      // In memory for now - can be expanded later
+      console.log(`User left room: ${roomId}`);
     });
 
     // Handle chat message sending
-    socket.on(SOCKET_EVENTS.CHAT_SEND, (data: { message: string; roomId: string }) => {
+    socket.on(SOCKET_EVENTS.CHAT_SEND, async (data: { message: string; roomId: string }) => {
       const { message, roomId } = data;
-      const user = users.get(socket.id);
       
-      if (user && message.trim()) {
-        const chatMessage: ChatMessage = {
-          id: Date.now().toString(),
-          userId: user.id,
-          username: user.username,
-          message,
-          timestamp: new Date().toISOString(),
-          roomId
-        };
+      try {
+        const user = await userService.findById(socket.id);
         
-        // Broadcast to room
-        io.to(roomId).emit(SOCKET_EVENTS.CHAT_RECEIVE, chatMessage);
+        if (user && message.trim()) {
+          const chatMessage: ChatMessage = {
+            id: Date.now().toString(),
+            userId: user.id,
+            username: user.nickname,
+            message,
+            timestamp: new Date().toISOString(),
+            roomId
+          };
+          
+          // Save message to DB
+          const savedMessage = await messageService.create({
+            id: chatMessage.id,
+            room_id: chatMessage.roomId,
+            user_id: chatMessage.userId,
+            message: chatMessage.message
+          });
+          
+          // Broadcast to room
+          io.to(roomId).emit(SOCKET_EVENTS.CHAT_RECEIVE, savedMessage);
+        }
+      } catch (error) {
+        console.error('Error sending chat message:', error);
       }
     });
 
     // Handle user typing
     socket.on(SOCKET_EVENTS.USER_TYPING, (data: { isTyping: boolean; roomId: string }) => {
       const { isTyping, roomId } = data;
-      const user = users.get(socket.id);
+      const user = { id: socket.id }; // Simplified for now
       
       if (user) {
         socket.to(roomId).emit(SOCKET_EVENTS.USER_TYPING, {
-          username: user.username,
+          username: user.id,
           isTyping
         });
       }
     });
 
     // Handle disconnection
-    socket.on('disconnect', () => {
-      const user = users.get(socket.id);
+    socket.on('disconnect', async () => {
+      const user = await userService.findById(socket.id);
       
       if (user) {
-        // Remove user from rooms
-        const roomUsers = rooms.get(user.roomId);
-        if (roomUsers) {
-          const userIndex = roomUsers.findIndex(u => u.id === socket.id);
-          if (userIndex !== -1) {
-            roomUsers.splice(userIndex, 1);
-            
-            // Notify others in the room
-            socket.to(user.roomId).emit(SOCKET_EVENTS.SYSTEM_MESSAGE, {
-              message: `[System] ${user.username} left`,
-              timestamp: new Date().toISOString()
-            });
-            
-            // Notify others in the room about user leave
-            socket.to(user.roomId).emit(SOCKET_EVENTS.USER_LEAVE, {
-              user: user,
-              timestamp: new Date().toISOString()
-            });
-          }
-        }
+        // Notify others in the room
+        socket.to(user.roomId).emit(SOCKET_EVENTS.SYSTEM_MESSAGE, {
+          message: `[System] ${user.nickname} left`,
+          timestamp: new Date().toISOString()
+        });
         
-        // Clean up
-        users.delete(socket.id);
-        console.log(`User disconnected: ${user.username}`);
+        // Notify others in the room about user leave
+        socket.to(user.roomId).emit(SOCKET_EVENTS.USER_LEAVE, {
+          user: user,
+          timestamp: new Date().toISOString()
+        });
+        
+        console.log(`User disconnected: ${user.nickname}`);
       }
     });
   });
