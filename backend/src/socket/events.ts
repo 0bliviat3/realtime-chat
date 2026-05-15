@@ -7,6 +7,7 @@ export const SOCKET_EVENTS = {
   // Room events
   ROOM_JOIN: 'room:join',
   ROOM_LEAVE: 'room:leave',
+  ROOM_HISTORY: 'room:history', // New event for room history
   
   // User events
   USER_LIST: 'user:list',
@@ -16,7 +17,10 @@ export const SOCKET_EVENTS = {
   USER_DISCONNECT: 'user:disconnect',
   
   // System events
-  SYSTEM_MESSAGE: 'system:message'
+  SYSTEM_MESSAGE: 'system:message',
+  
+  // Message events
+  MESSAGE_HISTORY: 'message:history', // New event for message history
 };
 
 export const SYSTEM_MESSAGES = {

@@ -31,6 +31,7 @@ export interface SocketEvents {
   // Room events
   'room:join': (data: { username: string; roomId: string }) => void;
   'room:leave': (data: { roomId: string }) => void;
+  'room:history': (data: { roomId: string }) => void; // New event
   
   // User events
   'user:list': (data: User[]) => void;
@@ -40,6 +41,9 @@ export interface SocketEvents {
   
   // System events
   'system:message': (data: { message: string; timestamp: string }) => void;
+  
+  // Message events
+  'message:history': (data: ChatMessage[]) => void; // New event
   
   // Connection events
   'connect': () => void;

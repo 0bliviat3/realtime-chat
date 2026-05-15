@@ -1,15 +1,26 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
+import { socket } from '../socket';
 import { useChatStore } from '../stores/chat';
+import { useUserStore } from '../stores/user';
+import { storeToRefs } from 'pinia';
 
 const chatStore = useChatStore();
+const userStore = useUserStore();
+const { currentUser } = storeToRefs(userStore);
+const { currentRoomId, messages } = storeToRefs(chatStore);
+
 const messageInput = ref('');
 const isTyping = ref(false);
 const typingTimeout = ref<NodeJS.Timeout | null>(null);
+const roomHistoryLoaded = ref(false);
 
 const sendMessage = () => {
-  if (messageInput.value.trim()) {
-    chatStore.sendMessage(messageInput.value);
+  if (messageInput.value.trim() && chatStore.roomId) {
+    socket.emit('chat:send', {
+      message: messageInput.value,
+      roomId: chatStore.roomId
+    });
     messageInput.value = '';
   }
 };
@@ -24,7 +35,10 @@ const handleInput = () => {
   // Start typing indicator
   if (!isTyping.value) {
     isTyping.value = true;
-    chatStore.startTyping();
+    socket.emit('user:typing', { 
+      isTyping: true, 
+      roomId: chatStore.roomId 
+    });
   }
   
   // Clear previous timeout
@@ -35,22 +49,92 @@ const handleInput = () => {
   // Set up timeout to stop typing
   typingTimeout.value = setTimeout(() => {
     isTyping.value = false;
-    chatStore.stopTyping();
+    socket.emit('user:typing', { 
+      isTyping: false, 
+      roomId: chatStore.roomId 
+    });
   }, 1000); // Stop typing after 1 second of inactivity
 };
 
 const handleLeaveRoom = () => {
   // Leave the room
-  chatStore.leaveRoom();
-  // Clear localStorage
-  chatStore.clearStorage();
-  // Reset store
-  chatStore.$reset();
-  // No need to manually navigate, the computed property in App.vue will handle that
+  if (chatStore.roomId) {
+    socket.emit('room:leave', { roomId: chatStore.roomId });
+    chatStore.setCurrentRoom(null);
+  }
 };
 
-// Cleanup on unmount
+// Load room history when joined
+const loadRoomHistory = () => {
+  if (chatStore.roomId && !roomHistoryLoaded.value) {
+    socket.emit('room:history', { roomId: chatStore.roomId });
+    roomHistoryLoaded.value = true;
+  }
+};
+
+// Socket event handlers
+socket.on('chat:receive', (message) => {
+  chatStore.appendMessage(message);
+});
+
+socket.on('room:history', (messages) => {
+  // Handle room history received
+  chatStore.setMessages(messages);
+});
+
+socket.on('user:join', ({ user, timestamp }) => {
+  chatStore.addUserToList(user);
+});
+
+socket.on('user:leave', ({ user, timestamp }) => {
+  chatStore.removeUserFromList(user);
+});
+
+socket.on('user:typing', ({ username, isTyping }) => {
+  if (isTyping) {
+    chatStore.addTypingUser(username);
+  } else {
+    chatStore.removeTypingUser(username);
+  }
+});
+
+socket.on('system:message', ({ message, timestamp }) => {
+  chatStore.appendMessage({
+    id: Date.now().toString(),
+    userId: '',
+    username: 'System',
+    message,
+    timestamp,
+    roomId: chatStore.roomId || ''
+  });
+});
+
+socket.on('connect', () => {
+  console.log('Connected to server');
+});
+
+socket.on('disconnect', () => {
+  console.log('Disconnected from server');
+});
+
+// Load history when room is joined
+onMounted(() => {
+  if (chatStore.roomId) {
+    loadRoomHistory();
+  }
+});
+
+// Cleanup socket listeners on unmount
 onUnmounted(() => {
+  socket.off('chat:receive');
+  socket.off('room:history');
+  socket.off('user:join');
+  socket.off('user:leave');
+  socket.off('user:typing');
+  socket.off('system:message');
+  socket.off('connect');
+  socket.off('disconnect');
+  
   if (typingTimeout.value) {
     clearTimeout(typingTimeout.value);
   }
