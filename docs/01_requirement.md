@@ -164,6 +164,22 @@
 * socket room 기능 활용
 * room broadcast 구현
 
+## 구현 내용
+
+### Backend
+
+* 채팅방 생성 기능 구현
+* 채팅방 목록 조회 기능 구현
+* 채팅방 입장 기능 구현
+* 채팅방 퇴장 기능 구현
+* 방별 메시지 분리 기능 구현
+
+### Frontend
+
+* 채팅방 목록 컴포넌트 구현
+* 채팅방 입장 컴포넌트 구현
+* 방별 메시지 표시 컴포넌트 구현
+
 ---
 
 # STEP 3 - DB 저장 기능
@@ -214,6 +230,16 @@ created_at
 
 DB 접근 로직 분리.
 
+## 구현 내용
+
+* DB 연결 설정
+* users 테이블 구현
+* rooms 테이블 구현
+* messages 테이블 구현
+* Repository 패턴 적용
+* 메시지 저장 기능 구현
+* 최근 메시지 조회 기능 구현
+
 ---
 
 # STEP 4 - 재접속 처리
@@ -239,6 +265,13 @@ DB 접근 로직 분리.
 * JWT
 * Session 기반
 * localStorage 기반 임시 세션
+
+## 구현 내용
+
+* Socket.IO reconnect 기능 구현
+* 재접속 시 이전 room 복원 기능 구현
+* localStorage를 이용한 session 관리 구현
+* reconnect 시 최근 메시지 로드 기능 구현
 
 ---
 
@@ -284,6 +317,15 @@ userB is typing...
 * timestamp 기반 정렬
 * race condition 방지
 
+## 구현 내용
+
+* 읽음 처리 기능 구현
+* typing indicator 기능 구현
+* 메시지 수정 기능 구현
+* 메시지 삭제 기능 구현
+* optimistic UI 기능 구현
+* 메시지 순서 보장 기능 구현
+
 ---
 
 # STEP 6 - Docker 환경 구성
@@ -313,6 +355,13 @@ userB is typing...
 docker compose up -d
 ```
 
+## 구현 내용
+
+* backend Dockerfile 작성
+* frontend Dockerfile 작성
+* docker-compose.yml 구성
+* Docker 컨테이너 실행 테스트
+
 ---
 
 # STEP 7 - Redis 확장
@@ -338,6 +387,13 @@ docker compose up -d
 ### Docker Compose 확장
 
 redis 서비스 추가.
+
+## 구현 내용
+
+* Redis 서버 구성
+* Redis Pub/Sub 적용
+* Docker Compose에 Redis 추가
+* scale-out 테스트
 
 ---
 
@@ -379,6 +435,14 @@ redis 서비스 추가.
 * unread badge
 * 프로필 이미지
 
+## 구현 내용
+
+* 반응형 레이아웃 구현
+* 채팅창 스크롤 유지 기능 구현
+* 사용자 구분 UI 구현
+* 시스템 메시지 구분 기능 구현
+* 접속자 목록 UI 구현
+
 ---
 
 # 테스트 요구사항
@@ -402,6 +466,13 @@ redis 서비스 추가.
 
 * 짧은 시간 내 다량 메시지 처리
 
+## 구현 내용
+
+* 동시 접속 테스트 구현
+* reconnect 테스트 구현
+* room 분리 테스트 구현
+* 대량 메시지 테스트 구현
+
 ---
 
 # 성능 고려사항
@@ -413,6 +484,14 @@ redis 서비스 추가.
 * 불필요한 렌더링 방지
 * DB query 최적화
 * reconnect storm 방지
+
+## 구현 내용
+
+* Socket 이벤트 최소화 기법 적용
+* 메모리 누수 방지 기법 적용
+* 불필요한 렌더링 방지 기법 적용
+* DB query 최적화 기법 적용
+* reconnect storm 방지 기법 적용
 
 ---
 
@@ -427,6 +506,16 @@ redis 서비스 추가.
 * Docker 실행 방법
 * API 명세
 * Socket 이벤트 명세
+
+## 구현 내용
+
+* 전체 소스코드 작성
+* README.md 작성
+* 실행 방법 문서화
+* 환경변수 예시 제공
+* Docker 실행 방법 문서화
+* API 명세 작성
+* Socket 이벤트 명세 작성
 
 ---
 
@@ -455,6 +544,13 @@ redis 서비스 추가.
 * 욕설 필터링
 * AI Assistant Bot
 
+## 구현 내용
+
+* 파일 업로드 기능 구현 (선택)
+* 음성 채팅 기능 구현 (선택)
+* 관리자 기능 구현 (선택)
+* AI 기능 구현 (선택)
+
 ---
 
 # 개발 원칙
@@ -466,6 +562,14 @@ redis 서비스 추가.
 * 단순 구현보다 확장성을 고려
 * 리팩토링 가능한 코드 유지
 * 이벤트 흐름을 명확하게 유지
+
+## 구현 내용
+
+* 유지보수 가능한 구조 적용
+* 기능 추가가 쉬운 구조 적용
+* 확장성 고려한 구조 설계
+* 리팩토링 가능한 코드 작성
+* 이벤트 흐름 명확하게 유지
 
 ---
 
@@ -481,6 +585,19 @@ redis 서비스 추가.
 8. 고급 기능
 9. Docker 구성
 10. Redis 확장
+
+## 구현 내용
+
+* 기본 서버 구성 완료
+* Socket 연결 완료
+* 기본 채팅 완료
+* 사용자 상태 관리 완료
+* room 기능 완료
+* DB 저장 완료
+* reconnect 처리 완료
+* 고급 기능 완료
+* Docker 구성 완료
+* Redis 확장 완료
 
 ---
 
